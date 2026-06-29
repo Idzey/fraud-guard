@@ -66,9 +66,9 @@ export function ModelsPage() {
     <div>
       <PageHeader
         title="Модели"
-        description="Сравнение моделей, метрики классификации, feature importance и диагностические кривые."
+        description="Сравнение ML-моделей, диагностика качества и просмотр Confusion Matrix."
         action={
-          <div className="flex flex-wrap items-center gap-2">
+          <>
             <Select value={models.sortKey} onValueChange={(value) => models.setSortKey(value as SortMetricKey)}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Сортировка" />
@@ -90,115 +90,112 @@ export function ModelsPage() {
               </TooltipTrigger>
               <TooltipContent>Переобучить все модели и обновить метрики</TooltipContent>
             </Tooltip>
-          </div>
+          </>
         }
       />
 
       {models.error ? <ErrorAlert message={models.error} /> : null}
-      {training.trainingError ? <div className="mt-4"><ErrorAlert message={training.trainingError} /></div> : null}
+      {training.trainingError ? <div className="mt-3"><ErrorAlert message={training.trainingError} /></div> : null}
 
       {models.isLoading ? (
         <Skeleton className="h-80 w-full rounded-lg" />
       ) : models.sortedMetrics.length ? (
-        <div className="grid gap-4 xl:grid-cols-[1fr_0.8fr]">
+        <div className="grid gap-3 xl:grid-cols-[1fr_0.8fr]">
           <Card>
             <CardHeader>
-              <CardTitle>Метрики</CardTitle>
-              <CardDescription>Сортировка по выбранной метрике</CardDescription>
+              <div>
+                <CardTitle>Таблица моделей</CardTitle>
+                <CardDescription>Сортировка по выбранной метрике</CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Модель</TableHead>
-                    <TableHead>ROC-AUC</TableHead>
-                    <TableHead>Precision</TableHead>
-                    <TableHead>Recall</TableHead>
-                    <TableHead>F1</TableHead>
-                    <TableHead>Accuracy</TableHead>
-                    <TableHead>PR-AUC</TableHead>
-                    <TableHead>Детали</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {models.sortedMetrics.map((metric, index) => (
-                    <TableRow
-                      key={metric.model}
-                      className={metric.model === currentMetric?.model ? "bg-primary/10" : undefined}
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={index === 0 ? "success" : "secondary"}>{index + 1}</Badge>
-                          <span className="font-medium">{metric.model}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{formatRatio(metric.roc_auc)}</TableCell>
-                      <TableCell>{formatRatio(metric.precision)}</TableCell>
-                      <TableCell>{formatRatio(metric.recall)}</TableCell>
-                      <TableCell>{formatRatio(metric.f1)}</TableCell>
-                      <TableCell>{formatRatio(metric.accuracy)}</TableCell>
-                      <TableCell>{formatRatio(metric.pr_auc)}</TableCell>
-                      <TableCell>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => models.setSelectedModel(metric.model)}
-                            >
-                              <Eye className="size-4" />
-                              Матрица
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>{metric.model}</DialogTitle>
-                              <DialogDescription>Confusion Matrix на тестовой выборке</DialogDescription>
-                            </DialogHeader>
-                            <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-border text-center">
-                              <div className="border-b border-r border-border p-5">
-                                <div className="text-sm text-muted-foreground">True Negative</div>
-                                <div className="mt-2 text-2xl font-semibold">
-                                  {formatNumber(metric.confusion_matrix.true_negative)}
-                                </div>
-                              </div>
-                              <div className="border-b border-border p-5">
-                                <div className="text-sm text-muted-foreground">False Positive</div>
-                                <div className="mt-2 text-2xl font-semibold text-amber-200">
-                                  {formatNumber(metric.confusion_matrix.false_positive)}
-                                </div>
-                              </div>
-                              <div className="border-r border-border p-5">
-                                <div className="text-sm text-muted-foreground">False Negative</div>
-                                <div className="mt-2 text-2xl font-semibold text-rose-200">
-                                  {formatNumber(metric.confusion_matrix.false_negative)}
-                                </div>
-                              </div>
-                              <div className="p-5">
-                                <div className="text-sm text-muted-foreground">True Positive</div>
-                                <div className="mt-2 text-2xl font-semibold text-primary">
-                                  {formatNumber(metric.confusion_matrix.true_positive)}
-                                </div>
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </TableCell>
+              <div className="table-shell subtle-scrollbar">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Model</TableHead>
+                      <TableHead>ROC-AUC</TableHead>
+                      <TableHead>Precision</TableHead>
+                      <TableHead>Recall</TableHead>
+                      <TableHead>F1-score</TableHead>
+                      <TableHead>Accuracy</TableHead>
+                      <TableHead>PR-AUC</TableHead>
+                      <TableHead />
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {models.sortedMetrics.map((metric, index) => (
+                      <TableRow
+                        key={metric.model}
+                        className={metric.model === currentMetric?.model ? "bg-white/[0.035]" : undefined}
+                        onClick={() => models.setSelectedModel(metric.model)}
+                      >
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={index === 0 ? "success" : "secondary"}>{index + 1}</Badge>
+                            <span className="font-medium text-[var(--text-2)]">{metric.model}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{formatRatio(metric.roc_auc)}</TableCell>
+                        <TableCell>{formatRatio(metric.precision)}</TableCell>
+                        <TableCell>{formatRatio(metric.recall)}</TableCell>
+                        <TableCell>{formatRatio(metric.f1)}</TableCell>
+                        <TableCell>{formatRatio(metric.accuracy)}</TableCell>
+                        <TableCell>{formatRatio(metric.pr_auc)}</TableCell>
+                        <TableCell>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  models.setSelectedModel(metric.model);
+                                }}
+                              >
+                                <Eye className="size-4" />
+                                Matrix
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>{metric.model}</DialogTitle>
+                                <DialogDescription>Confusion Matrix на тестовой выборке</DialogDescription>
+                              </DialogHeader>
+                              <div className="grid grid-cols-2 gap-2">
+                                {[
+                                  ["True Negative", metric.confusion_matrix.true_negative, "text-foreground"],
+                                  ["False Positive", metric.confusion_matrix.false_positive, "text-amber-100"],
+                                  ["False Negative", metric.confusion_matrix.false_negative, "text-rose-100"],
+                                  ["True Positive", metric.confusion_matrix.true_positive, "text-emerald-100"],
+                                ].map(([label, value, color]) => (
+                                  <div key={label} className="rounded-lg border border-border bg-white/[0.025] p-3">
+                                    <span className="text-xs text-[var(--text-4)]">{label}</span>
+                                    <b className={`mt-3 block text-2xl font-medium ${color}`}>
+                                      {formatNumber(Number(value))}
+                                    </b>
+                                  </div>
+                                ))}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Выбранная модель</CardTitle>
-              <CardDescription>Модель для графиков и матрицы ошибок</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              <div>
+                <CardTitle>{currentMetric?.model ?? "Выбранная модель"}</CardTitle>
+                <CardDescription>Ключевые показатели выбранной модели</CardDescription>
+              </div>
               <Select value={currentMetric?.model ?? ""} onValueChange={models.setSelectedModel}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full sm:w-44">
                   <SelectValue placeholder="Выберите модель" />
                 </SelectTrigger>
                 <SelectContent>
@@ -209,25 +206,25 @@ export function ModelsPage() {
                   ))}
                 </SelectContent>
               </Select>
-
+            </CardHeader>
+            <CardContent>
               {currentMetric ? (
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-lg border border-border bg-background/40 p-4">
-                    <div className="text-xs text-muted-foreground">ROC-AUC</div>
-                    <div className="mt-2 text-xl font-semibold">{formatPercent(currentMetric.roc_auc)}</div>
-                  </div>
-                  <div className="rounded-lg border border-border bg-background/40 p-4">
-                    <div className="text-xs text-muted-foreground">F1-score</div>
-                    <div className="mt-2 text-xl font-semibold">{formatPercent(currentMetric.f1)}</div>
-                  </div>
-                  <div className="rounded-lg border border-border bg-background/40 p-4">
-                    <div className="text-xs text-muted-foreground">Recall</div>
-                    <div className="mt-2 text-xl font-semibold">{formatPercent(currentMetric.recall)}</div>
-                  </div>
-                  <div className="rounded-lg border border-border bg-background/40 p-4">
-                    <div className="text-xs text-muted-foreground">Precision</div>
-                    <div className="mt-2 text-xl font-semibold">{formatPercent(currentMetric.precision)}</div>
-                  </div>
+                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                  {[
+                    ["ROC-AUC", currentMetric.roc_auc],
+                    ["Recall", currentMetric.recall],
+                    ["PR-AUC", currentMetric.pr_auc],
+                    ["Precision", currentMetric.precision],
+                    ["F1-score", currentMetric.f1],
+                    ["Accuracy", currentMetric.accuracy],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-md border border-white/[0.05] bg-white/[0.018] p-2.5">
+                      <span className="block text-[11px] text-[var(--text-4)]">{label}</span>
+                      <b className="mt-1.5 block text-lg font-medium tabular-nums">
+                        {formatPercent(Number(value))}
+                      </b>
+                    </div>
+                  ))}
                 </div>
               ) : null}
             </CardContent>
@@ -241,59 +238,61 @@ export function ModelsPage() {
         </Alert>
       )}
 
-      <Card className="mt-6">
+      <Card className="mt-3">
         <CardHeader>
-          <CardTitle>Диагностика модели</CardTitle>
-          <CardDescription>Feature importance, ROC Curve и Precision-Recall Curve</CardDescription>
+          <div>
+            <CardTitle>Диагностика модели</CardTitle>
+            <CardDescription>Feature Importance, ROC Curve и Precision-Recall Curve</CardDescription>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <Tabs defaultValue="importance">
-            <TabsList className="flex h-auto flex-wrap justify-start">
+            <TabsList>
               <TabsTrigger value="importance">Feature Importance</TabsTrigger>
               <TabsTrigger value="roc">ROC Curve</TabsTrigger>
-              <TabsTrigger value="pr">Precision Recall</TabsTrigger>
+              <TabsTrigger value="pr">Precision-Recall Curve</TabsTrigger>
             </TabsList>
 
             <TabsContent value="importance">
-              <div className="h-96">
+              <div className="h-96 p-3.5">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={importanceData} layout="vertical" margin={{ left: 30, right: 16, top: 8, bottom: 8 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                    <XAxis type="number" tick={{ fill: "#cbd5e1", fontSize: 12 }} />
-                    <YAxis dataKey="feature" type="category" tick={{ fill: "#cbd5e1", fontSize: 12 }} width={64} />
+                    <CartesianGrid strokeDasharray="3 3" className="chart-grid" />
+                    <XAxis type="number" tick={{ fill: "#8a8f98", fontSize: 12 }} />
+                    <YAxis dataKey="feature" type="category" tick={{ fill: "#8a8f98", fontSize: 12 }} width={64} />
                     <ChartTooltip
-                      contentStyle={{ background: "#111827", border: "1px solid #334155" }}
+                      contentStyle={{ background: "#111214", border: "1px solid rgba(255,255,255,.08)" }}
                       formatter={(value) => `${formatNumber(Number(value), 3)}%`}
                     />
-                    <Bar dataKey="importance" fill="#14b8a6" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="importance" fill="#7170ff" radius={[0, 3, 3, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </TabsContent>
 
             <TabsContent value="roc">
-              <div className="h-96">
+              <div className="h-96 p-3.5">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={rocData} margin={{ left: 0, right: 16, top: 8, bottom: 8 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                    <XAxis dataKey="fpr" tick={{ fill: "#cbd5e1", fontSize: 12 }} domain={[0, 1]} />
-                    <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} domain={[0, 1]} />
-                    <ChartTooltip contentStyle={{ background: "#111827", border: "1px solid #334155" }} />
-                    <Line type="monotone" dataKey="tpr" stroke="#14b8a6" strokeWidth={2} dot={false} />
+                    <CartesianGrid strokeDasharray="3 3" className="chart-grid" />
+                    <XAxis dataKey="fpr" tick={{ fill: "#8a8f98", fontSize: 12 }} domain={[0, 1]} />
+                    <YAxis tick={{ fill: "#8a8f98", fontSize: 12 }} domain={[0, 1]} />
+                    <ChartTooltip contentStyle={{ background: "#111214", border: "1px solid rgba(255,255,255,.08)" }} />
+                    <Line type="monotone" dataKey="tpr" stroke="#7170ff" strokeWidth={2.5} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </TabsContent>
 
             <TabsContent value="pr">
-              <div className="h-96">
+              <div className="h-96 p-3.5">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={prData} margin={{ left: 0, right: 16, top: 8, bottom: 8 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                    <XAxis dataKey="recall" tick={{ fill: "#cbd5e1", fontSize: 12 }} domain={[0, 1]} />
-                    <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} domain={[0, 1]} />
-                    <ChartTooltip contentStyle={{ background: "#111827", border: "1px solid #334155" }} />
-                    <Line type="monotone" dataKey="precision" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                    <CartesianGrid strokeDasharray="3 3" className="chart-grid" />
+                    <XAxis dataKey="recall" tick={{ fill: "#8a8f98", fontSize: 12 }} domain={[0, 1]} />
+                    <YAxis tick={{ fill: "#8a8f98", fontSize: 12 }} domain={[0, 1]} />
+                    <ChartTooltip contentStyle={{ background: "#111214", border: "1px solid rgba(255,255,255,.08)" }} />
+                    <Line type="monotone" dataKey="precision" stroke="#19b47a" strokeWidth={2.5} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -304,3 +303,4 @@ export function ModelsPage() {
     </div>
   );
 }
+

@@ -14,3 +14,14 @@ class DatasetInfo(BaseModel):
 class DatasetPreview(BaseModel):
     rows: list[dict[str, Any]]
 
+
+class DatasetSample(BaseModel):
+    id: str
+    title: str
+    description: str
+    expected_class: int
+    payload: dict[str, float]
+
+
+class DatasetSamples(BaseModel):
+    samples: list[DatasetSample]

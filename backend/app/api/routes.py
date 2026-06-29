@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.api.dependencies import get_dataset_service, get_prediction_service, get_training_service
 from app.schemas.common import StatusResponse
-from app.schemas.dataset import DatasetInfo, DatasetPreview
+from app.schemas.dataset import DatasetInfo, DatasetPreview, DatasetSamples
 from app.schemas.ml import (
     FeatureImportanceSet,
     ModelMetric,
@@ -31,6 +31,11 @@ def dataset_info(service: DatasetService = Depends(get_dataset_service)) -> Data
 @router.get("/dataset/preview", response_model=DatasetPreview)
 def dataset_preview(service: DatasetService = Depends(get_dataset_service)) -> DatasetPreview:
     return service.get_preview()
+
+
+@router.get("/dataset/samples", response_model=DatasetSamples)
+def dataset_samples(service: DatasetService = Depends(get_dataset_service)) -> DatasetSamples:
+    return service.get_samples()
 
 
 @router.post("/models/train", response_model=TrainResponse)

@@ -47,6 +47,18 @@ export interface DatasetPreview {
   rows: DatasetRow[];
 }
 
+export interface DatasetSample {
+  id: string;
+  title: string;
+  description: string;
+  expected_class: 0 | 1;
+  payload: PredictionPayload;
+}
+
+export interface DatasetSamples {
+  samples: DatasetSample[];
+}
+
 export interface ConfusionMatrix {
   true_negative: number;
   false_positive: number;
@@ -96,5 +108,20 @@ export interface PredictionResponse {
   prediction: number;
   probability: number;
   risk: "Low" | "Medium" | "High";
+  explanation: PredictionExplanation;
 }
 
+export interface FeatureContribution {
+  feature: FeatureName;
+  value: number;
+  importance: number;
+  contribution: number;
+  reason: string;
+}
+
+export interface PredictionExplanation {
+  model: string;
+  method: string;
+  summary: string;
+  top_factors: FeatureContribution[];
+}

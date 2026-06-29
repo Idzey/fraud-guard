@@ -1,17 +1,6 @@
 from functools import lru_cache
-from typing import Annotated
 
-from pydantic import BeforeValidator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-
-def _split_origins(value: str | list[str]) -> list[str]:
-    if isinstance(value, list):
-        return value
-    return [origin.strip() for origin in value.split(",") if origin.strip()]
-
-
-CorsOrigins = Annotated[list[str], BeforeValidator(_split_origins)]
 
 
 class Settings(BaseSettings):
@@ -19,12 +8,16 @@ class Settings(BaseSettings):
 
     app_name: str = "FraudGuard ML API"
     api_prefix: str = ""
-    cors_origins: CorsOrigins = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:4173",
-        "http://127.0.0.1:4173",
-    ]
+    cors_origins: str = (
+        "http://localhost:5173,"
+        "http://127.0.0.1:5173,"
+        "http://localhost:4173,"
+        "http://127.0.0.1:4173"
+    )
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -36,4 +29,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-

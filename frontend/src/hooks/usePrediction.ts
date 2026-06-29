@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { getApiErrorMessage } from "@/api/client";
-import { predictFraud } from "@/api/fraudApi";
-import type { FeatureName, PredictionPayload, PredictionResponse } from "@/types/api";
+import { getDatasetSamples, predictFraud } from "@/api/fraudApi";
+import type { DatasetSample, FeatureName, PredictionPayload, PredictionResponse } from "@/types/api";
 import { vFeatureNames } from "@/types/api";
 
 export function createEmptyPrediction(): PredictionPayload {
@@ -23,15 +23,57 @@ export function usePrediction() {
   const [result, setResult] = useState<PredictionResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [samples, setSamples] = useState<DatasetSample[]>([]);
+  const [samplesError, setSamplesError] = useState<string | null>(null);
+  const [isSamplesLoading, setIsSamplesLoading] = useState(true);
+  const [selectedSampleId, setSelectedSampleId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadSamples() {
+      setIsSamplesLoading(true);
+      setSamplesError(null);
+      try {
+        const response = await getDatasetSamples();
+        if (mounted) {
+          setSamples(response.samples);
+        }
+      } catch (caughtError) {
+        if (mounted) {
+          setSamplesError(getApiErrorMessage(caughtError));
+        }
+      } finally {
+        if (mounted) {
+          setIsSamplesLoading(false);
+        }
+      }
+    }
+
+    void loadSamples();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   function updateField(field: FeatureName, value: number) {
     setForm((current) => ({ ...current, [field]: Number.isFinite(value) ? value : 0 }));
+    setSelectedSampleId(null);
   }
 
   function resetForm() {
     setForm(createEmptyPrediction());
     setResult(null);
     setError(null);
+    setSelectedSampleId(null);
+  }
+
+  function applySample(sample: DatasetSample) {
+    setForm(sample.payload);
+    setResult(null);
+    setError(null);
+    setSelectedSampleId(sample.id);
   }
 
   async function submit() {
@@ -52,8 +94,13 @@ export function usePrediction() {
     result,
     error,
     isSubmitting,
+    samples,
+    samplesError,
+    isSamplesLoading,
+    selectedSampleId,
     updateField,
     resetForm,
+    applySample,
     submit,
   };
 }

@@ -3,13 +3,13 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-const alertVariants = cva("relative w-full rounded-lg border p-4 text-sm", {
+const alertVariants = cva("relative w-full rounded-lg border px-3 py-2.5 text-[13px] leading-5", {
   variants: {
     variant: {
-      default: "border-border bg-card text-card-foreground",
-      success: "border-emerald-400/30 bg-emerald-500/10 text-emerald-100",
-      warning: "border-amber-400/30 bg-amber-500/10 text-amber-100",
-      destructive: "border-destructive/40 bg-destructive/10 text-rose-100",
+      default: "border-amber-400/25 bg-amber-500/15 text-amber-100",
+      success: "border-emerald-400/25 bg-emerald-500/15 text-emerald-100",
+      warning: "border-amber-400/25 bg-amber-500/15 text-amber-100",
+      destructive: "border-rose-400/25 bg-rose-500/15 text-rose-100",
     },
   },
   defaultVariants: {
@@ -36,8 +36,9 @@ const AlertDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("text-sm opacity-90", className)} {...props} />
+  <div ref={ref} className={cn("text-[13px] opacity-90", className)} {...props} />
 ));
 AlertDescription.displayName = "AlertDescription";
 
 export { Alert, AlertDescription, AlertTitle };
+

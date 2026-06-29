@@ -2,6 +2,7 @@ import { apiClient } from "@/api/client";
 import type {
   DatasetInfo,
   DatasetPreview,
+  DatasetSamples,
   FeatureImportanceSet,
   ModelMetric,
   PredictionPayload,
@@ -21,6 +22,11 @@ export async function getDatasetInfo(): Promise<DatasetInfo> {
 
 export async function getDatasetPreview(): Promise<DatasetPreview> {
   const response = await apiClient.get<DatasetPreview>("/dataset/preview");
+  return response.data;
+}
+
+export async function getDatasetSamples(): Promise<DatasetSamples> {
+  const response = await apiClient.get<DatasetSamples>("/dataset/samples");
   return response.data;
 }
 
@@ -58,4 +64,3 @@ export async function predictFraud(payload: PredictionPayload): Promise<Predicti
   const response = await apiClient.post<PredictionResponse>("/predict", payload);
   return response.data;
 }
-

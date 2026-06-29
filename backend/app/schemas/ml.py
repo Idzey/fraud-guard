@@ -52,8 +52,23 @@ _prediction_fields.update(
 PredictionRequest = create_model("PredictionRequest", **_prediction_fields)
 
 
+class FeatureContribution(BaseModel):
+    feature: str
+    value: float
+    importance: float
+    contribution: float
+    reason: str
+
+
+class PredictionExplanation(BaseModel):
+    model: str
+    method: str
+    summary: str
+    top_factors: list[FeatureContribution]
+
+
 class PredictionResponse(BaseModel):
     prediction: int
     probability: float
     risk: str
-
+    explanation: PredictionExplanation
